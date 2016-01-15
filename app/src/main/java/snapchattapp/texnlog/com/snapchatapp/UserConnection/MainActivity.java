@@ -10,6 +10,7 @@ import android.widget.EditText;
 import snapchattapp.texnlog.com.snapchatapp.Camera.TestingCameraActivity;
 import snapchattapp.texnlog.com.snapchatapp.R;
 
+
 public class MainActivity extends AppCompatActivity  implements View.OnClickListener{
 
     Button bLogout;
@@ -49,12 +50,7 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
         return userLocalStore.getUserLoggedIn();
     }
 
-    private  void  displayUserName(){
-        User user = userLocalStore.getLoggedInUser();
 
-        etName.setText(user.name);
-        ;
-    }
     @Override
     public void onClick(View v) {
         switch (v.getId()) {

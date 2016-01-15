@@ -26,14 +26,19 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.RadioButton;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import snapchattapp.texnlog.com.snapchatapp.R;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -50,27 +55,35 @@ import java.util.Map;
  * href="http://developer.android.com/guide/topics/ui/settings.html">Settings
  * API Guide</a> for more information on developing a Settings UI.
  */
-public class SettingsActivity extends Activity {
+public class SettingsActivity extends Activity implements AdapterView.OnItemSelectedListener {
 
     private CheckBox faceBox,eyeBox;
-    private Spinner sharpSpinner, saturationSpinner, psizeSpinner, contrastSpinner, effectSpinner;
-    private  HashMap paramsTable=new HashMap();
+
+
     private CameraParameters parameters=CameraParameters.getInstance();
     private String optionValue;
+    private boolean settingChanged=false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_layout);
-       Intent intent=getIntent();
-       String parameters=intent.getStringExtra("cameraparams");
-       Log.d("nikos",parameters);
-
-        paramsTable= parametersTohashmap(parameters);
+        Intent intent=getIntent();
+        String  param=  intent.getStringExtra("ss");
+        parameters.init(param);
 
 
-    }
+
+
+
+        SpinnerResources();
+
+
+}
+
     public void onClickCheckBox(View view) {
+
         boolean checked = ((CheckBox) view).isChecked();
         faceBox=(CheckBox)findViewById(R.id.faceBox);
         eyeBox=(CheckBox) findViewById(R.id.redeyeBox);
@@ -88,36 +101,108 @@ public class SettingsActivity extends Activity {
                 if (checked) {
                     optionValue = "enabled";
                     parameters.setRedeye(optionValue);
+                    Log.d("panagiotis-redeye ",parameters.getRedeye());
                 } else {
                     eyeBox.setChecked(false);
                     optionValue = "disabled";
                     parameters.setRedeye(optionValue);
+
                 }
 
 
         }
     }
 
+    public void SpinnerResources() {
+        //initialization
+        Spinner sharpSpinner = (Spinner) findViewById(R.id.SharpnessSpinner);
+        Spinner sizeSpinner = (Spinner) findViewById(R.id.sizeSpinner);
+        Spinner effectSpinner = (Spinner) findViewById(R.id.effectSpinner);
+        Spinner contrastSpinner = (Spinner) findViewById(R.id.contrastSpinner);
+        Spinner saturSpinner = (Spinner) findViewById(R.id.SaturationSpinner);
+        //adapters
+        ArrayAdapter<String> adapterSharp = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,parameters.parameterNumericValues("sharpness".trim()));
+        ArrayAdapter<String> adapterSize = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, parameters.parameterValues("picture-size-values".trim()));
+        ArrayAdapter<String> adapterEffect = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, parameters.parameterValues("effect-values".trim()));
+        ArrayAdapter<String> adapterContrast = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,parameters.parameterNumericValues("contrast".trim()));
+        ArrayAdapter<String> adapterSatur = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, parameters.parameterNumericValues("saturation".trim()));
 
-    public HashMap parametersTohashmap(String parameters){
-        HashMap<String,String> paramsTable=new HashMap<>();
-        String[] pairs =parameters.split(";");
-        String novalue="no value found";
-        for(int i=0;i<pairs.length;i++){
-            String pair=pairs[i];
-            String[] keyvalue=pair.split("=");
-           try{
-               paramsTable.put(keyvalue[0],keyvalue[1]);
-           }catch(ArrayIndexOutOfBoundsException e){
-               paramsTable.put(keyvalue[0],novalue);
-           }
+        adapterSharp.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        adapterSize.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        adapterEffect.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        adapterContrast.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        adapterSatur.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        //place the adapters to spinners
+        sharpSpinner.setAdapter(adapterSharp);
+        sizeSpinner.setAdapter(adapterSize);
+        effectSpinner.setAdapter(adapterEffect);
+        contrastSpinner.setAdapter(adapterContrast);
+        saturSpinner.setAdapter(adapterSatur);
+        //actions
+        sizeSpinner.setOnItemSelectedListener(this);
+        effectSpinner.setOnItemSelectedListener(this);
+        contrastSpinner.setOnItemSelectedListener(this);
+        effectSpinner.setOnItemSelectedListener(this);
+        saturSpinner.setOnItemSelectedListener(this);
 
-        }
-
-        return paramsTable;
     }
 
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) throws NumberFormatException{
+        try {
+            switch (parent.getId()) {
+                case R.id.contrastSpinner:
 
+                    parameters.setContrast(Integer.parseInt(parent.getItemAtPosition(position).toString()));
+//                    settingChanged=true;
+                    if(parameters.getContrast()==Integer.parseInt(parent.getItemAtPosition(position).toString()))
+                        settingChanged=true;
+                    break;
+                case R.id.SaturationSpinner:
+
+                    parameters.setSaturation(Integer.parseInt(parent.getItemAtPosition(position).toString()));
+//                    settingChanged=true;
+                    if(parameters.getSaturation()==Integer.parseInt(parent.getItemAtPosition(position).toString())&&position!=0)
+                        settingChanged=true;
+                    break;
+                case R.id.SharpnessSpinner:
+//                    settingChanged=true;
+                    parameters.setSharpness(Integer.parseInt(parent.getItemAtPosition(position).toString()));
+                    if(parameters.getSharpness()==Integer.parseInt(parent.getItemAtPosition(position).toString())&&position!=0)
+                        settingChanged=true;
+                    break;
+                case R.id.effectSpinner:
+                    parameters.setEffect(parent.getItemAtPosition(position).toString());
+//                    settingChanged=true;
+                    if(parameters.getEffect()==(parent.getItemAtPosition(position).toString())&&position!=0)
+                        settingChanged=true;
+                    break;
+                case R.id.sizeSpinner:
+
+                    parameters.setPicturesize(parent.getItemAtPosition(position).toString());
+//                    settingChanged=true;
+                    if(parameters.getPicturesize()==(parent.getItemAtPosition(position).toString())&&position!=0)
+                        settingChanged=true;
+                    break;
+
+            }
         }
+            catch(NumberFormatException e){
+                Toast.makeText(SettingsActivity.this, "Choose an option", Toast.LENGTH_SHORT).show();
+            }
+
     }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+            }
+    public void onGoingBack(View view){
+        parameters.SettingsState(settingChanged);
+        Log.d("panagiotis", String.valueOf(settingChanged));
+        Intent n=new Intent(getApplicationContext(),TestingCameraActivity.class);
+        startActivity(n);
+
+    }
+
 }
+

@@ -8,6 +8,7 @@
     android:layout_height="fill_parent">
 
 
+
     <CheckBox
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -55,5 +56,13 @@
         android:id="@+id/sizeSpinner"
         android:layout_gravity="center_horizontal"
         android:layout_margin="20dp" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Button"
+        android:id="@+id/button"
+        android:layout_gravity="center_horizontal"
+        android:onClick="onGoingBack"/>
 </LinearLayout>
 </ScrollView>
